@@ -29,6 +29,8 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks:
       - metanet1
+    ports:
+      - 5432:5432
 
 volumes:
   pgdata:
