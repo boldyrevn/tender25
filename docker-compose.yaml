@@ -31,6 +31,13 @@ services:
       - metanet1
     ports:
       - 5432:5432
+  fastapi:
+    build: ./backend
+    networks:
+      - metanet1
+    ports: 
+    - 8000:8000
+
 
 volumes:
   pgdata:
