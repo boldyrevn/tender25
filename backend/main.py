@@ -1,10 +1,18 @@
 from datetime import timedelta, datetime, timezone
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Annotated
 from db import DataRepository
 from model import *
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 pgclient = DataRepository(
     host="185.170.153.129",
