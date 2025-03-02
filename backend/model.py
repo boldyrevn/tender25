@@ -80,4 +80,9 @@ class VictoryStat(BaseModel):
 class VictoryStatResponse(BaseModel):
     victory_stat_base: list[VictoryStat]
 
+class CompetitorsInCSRequest(BaseModel):
+    Interval: Interval
+
+class CompetitorsInCSResponse(BaseModel):
+    cnt_competitors: int
 

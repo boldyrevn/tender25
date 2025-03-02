@@ -41,5 +41,10 @@ def category(params: CategoryRequest, db: Annotated[DataRepository, Depends(get_
     return db.get_category_highest(params)
 
 @app.post('/victory-stat', response_model=VictoryStatResponse)
-def category(params: VictoryStatRequest, db: Annotated[DataRepository, Depends(get_pg)]):
+def victory_stat(params: VictoryStatRequest, db: Annotated[DataRepository, Depends(get_pg)]):
     return db.get_victory_stat(params)
+
+@app.post('/competitors', response_model=CompetitorsInCSResponse)
+def competitors(params: CompetitorsInCSRequest, db: Annotated[DataRepository, Depends(get_pg)]):
+    return db.get_competitors(params)
+

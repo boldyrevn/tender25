@@ -297,3 +297,27 @@ GROUP BY temp_table.cnt_unique_contracts;
             return ParticipationResultAggResponse(
                 victory_stat_base=[dict(row) for row in victory_stat_base],
             )
+
+
+    def get_competitors(self, params: CompetitorsInCSRequest) -> CompetitorsInCSResponse:
+        q_comp_stat = """
+SELECT
+  ROUND(AVG(competitors_count), 2) AS "Среднее количество конкурентов в сессии"
+FROM (
+  SELECT
+    tender_wide_table_v1."Id КС", 
+    COUNT(DISTINCT "ИНН участников") - 1 AS competitors_count
+  FROM
+    tender_wide_table_v1
+  where 1 = 1
+  AND %s < "Окончание КС"
+  AND %s > "Окончание КС"
+  GROUP BY
+    tender_wide_table_v1."Id КС"
+) AS competitors_per_session;
+"""
+
+        with self.client.cursor() as cur:
+            cur.execute(q_comp_stat, (params.Supplier, *params.Interval.get_standart()))
+            cnt_competitors = cur.fetchall()[0]
+            return ParticipationResultResponse(cnt_competitors=cnt_competitors)
