@@ -14,14 +14,14 @@ import {
 export interface SessionsResponse {
   data: {
     id_ks: string;
-    ds_mean: number;
+    ds_mean?: number;
     ks_mean: number;
   }[];
 }
 
 const SessionsChart: FC<SessionsResponse> = ({ data }) => {
   // Постоянное значение ds_mean (одинаковое для всех записей)
-  const dsAverage = data[0].ds_mean;
+  const dsAverage = data[0].ds_mean ?? 0;
 
   // Вычислим максимальное значение ks_mean для установки масштаба Y
   const maxKsValue = Math.max(...data.map((item) => item.ks_mean));
@@ -35,7 +35,7 @@ const SessionsChart: FC<SessionsResponse> = ({ data }) => {
     // Для каждой записи вычисляем разницу
     const reductions = data.map((item) => {
       // Если ds_mean больше ks_mean, это снижение
-      if (item.ds_mean > item.ks_mean) {
+      if (item.ds_mean && item.ds_mean > item.ks_mean) {
         return item.ds_mean - item.ks_mean;
       }
       // Если ks_mean больше ds_mean, считаем как 0 (нет снижения)
