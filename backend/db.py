@@ -41,10 +41,35 @@ class DataRepository:
             cur.execute(query, (*params.Interval.get_standart(),))
             result = cur.fetchall()
             return DiffBaseCostResponse(
-                top=[DiffBaseCostResponse(
+                top=[DiffBaseCost(
                     id_ks=row[0],
                     ds_mean=row[1],
                     ks_mean=row[2]
+                ) for row in result]
+            )
+
+
+    def get_amount_sessions(self, params: AmountResultSessionRequest) -> AmountResultSessionResponse:
+        query = """
+          SELECT 
+            t."Id КС",
+            sum(t."Конечная цена КС (победителя в КС)") as "Оборот по сессиям"
+          FROM tender_wide_table_v1 as t
+          WHERE 1=1
+            AND t."ИНН победителя КС" LIKE %s
+            AND %s < "Окончание КС"
+            AND %s > "Окончание КС"
+              GROUP BY
+                  "Id КС"
+        """
+
+        with self.client.cursor() as cur:
+            cur.execute(query, (*params.Interval.get_standart(),))
+            result = cur.fetchall()
+            return AmountResultSessionResponse(
+                top=[AmountResultSession(
+                    id_ks=row[0],
+                    session_amt=row[1],
                 ) for row in result]
             )
 

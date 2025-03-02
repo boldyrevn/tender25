@@ -28,11 +28,25 @@ class DiffBaseCostRequest(BaseModel):
     Interval: Interval
     Supplier: Optional[str] = None
 
-class DiffBaseCostResponse(BaseModel):
+class DiffBaseCost(BaseModel):
     id_ks: str
     ds_mean: float
     ks_mean: float
 
+class DiffBaseCostResponse(BaseModel):
+    diff: list[DiffBaseCost]
+
+
+class AmountResultSessionRequest(BaseModel):
+    Interval: Interval
+    Supplier: Optional[str] = None
+
+class AmountResultSession(BaseModel):
+    id_ks: str
+    amt: float
+
+class AmountResultSessionResponse(BaseModel):
+    diff: list[AmountResultSession]
 
 class AmountResultAggRequest(BaseModel):
     Interval: Interval

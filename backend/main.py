@@ -32,6 +32,10 @@ def participation(params: DiffBaseCostRequest, db: Annotated[DataRepository, Dep
 def participation(params: AmountResultAggRequest, db: Annotated[DataRepository, Depends(get_pg)]):
     return db.get_amount_agg(params)
 
+@app.post('/amount/sessions')
+def participation(params: AmountResultSessionRequest, db: Annotated[DataRepository, Depends(get_pg)]):
+    return db.get_amount_sessions(params)
+
 @app.post('/participation', response_model=ParticipationResultResponse)
 def participation(params: ParticipationResultsRequest, db: Annotated[DataRepository, Depends(get_pg)]):
     return db.get_participation(params)
