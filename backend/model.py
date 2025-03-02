@@ -107,7 +107,6 @@ class CategoryResponse(BaseModel):
     highest_concurrency: list[Category]
     highest_wins: list[Category]
 
-<<<<<<< HEAD
 
 class GraphType(Enum):
     DiffBaseCost = 'diff_base_cost'
@@ -137,7 +136,6 @@ class DashboardSchema(BaseModel):
     date_from: datetime
     date_to: datetime
     graphs: list[Graph]
-=======
 class VictoryStatRequest(BaseModel):
     Interval: Interval
     Supplier: str
@@ -154,4 +152,3 @@ class CompetitorsInCSRequest(BaseModel):
 class CompetitorsInCSResponse(BaseModel):
     cnt_competitors: int
 
->>>>>>> feature/add_query4dashNsendes

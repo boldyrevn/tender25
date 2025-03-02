@@ -11,9 +11,10 @@ cfg = {
     "db":"tenderdb"
 }
 
-def make_req(cfg, method, params):
+def generate_dash_data(cfg: dict, dash_id: int):
     pgclient = DataRepository(**cfg)
-    print('RESULT:', method(pgclient, params))
+
+    
 
 
 
@@ -26,6 +27,13 @@ class DataRepository:
             password=password,
             database=db
         )
+
+    
+    def get_dash_schema(self, id: int):
+        q = """
+    SELECT content FROM  
+"""
+
 
     def get_diff_the_base_cost(self, params: DiffBaseCostRequest) -> DiffBaseCostResponse:
         query = """
@@ -51,15 +59,19 @@ class DataRepository:
         """
 
         with self.client.cursor() as cur:
-            cur.execute(query, (params.Supplier, *params.Interval.get_standart()))
-            result = cur.fetchall()
-            return DiffBaseCostResponse(
-                diff=[DiffBaseCost(
-                    id_ks=row[0],
-                    ks_mean=row[1],
-                    ds_mean=row[2]
-                ) for row in result]
-            )
+            try:
+                cur.execute(query, (params.Supplier, *params.Interval.get_standart()))
+                result = cur.fetchall()
+                self.client.commit()
+                return DiffBaseCostResponse(
+                    diff=[DiffBaseCost(
+                        id_ks=row[0],
+                        ks_mean=row[1],
+                        ds_mean=row[2]
+                    ) for row in result]
+                )
+            except:
+                self.client.rollback()
 
 
     def get_amount_sessions(self, params: AmountResultSessionRequest) -> AmountResultSessionResponse:
@@ -77,14 +89,18 @@ class DataRepository:
         """
 
         with self.client.cursor() as cur:
-            cur.execute(query, (params.Supplier, *params.Interval.get_standart()))
-            result = cur.fetchall()
-            return AmountResultSessionResponse(
-                diff=[AmountResultSession(
-                    id_ks=row[0],
-                    amt=row[1],
-                ) for row in result]
-            )
+            try:
+                cur.execute(query, (params.Supplier, *params.Interval.get_standart()))
+                result = cur.fetchall()
+                self.client.commit()
+                return AmountResultSessionResponse(
+                    diff=[AmountResultSession(
+                        id_ks=row[0],
+                        amt=row[1],
+                    ) for row in result]
+                )
+            except:
+                self.client.rollback()
 
 
     def get_amount_agg(self, params: AmountResultAggRequest) -> AmountResultAggResponse:
@@ -129,10 +145,14 @@ class DataRepository:
             replace("{order_by}", groupby_map[params.AggBy])
 
         with self.client.cursor() as cur:
-            cur.execute(query, (params.Supplier, *params.Interval.get_standart()))
-            result = cur.fetchone()            
-            amt = result[0]
-            return AmountResultAggResponse(amt=amt)
+            try:
+                cur.execute(query, (params.Supplier, *params.Interval.get_standart()))
+                result = cur.fetchone()            
+                amt = result[0]
+                self.client.commit()
+                return AmountResultAggResponse(amt=amt)
+            except:
+                self.client.rollback()
 
 
     def get_participation(self, params: ParticipationResultsRequest) -> ParticipationResultResponse:
@@ -174,15 +194,19 @@ WHERE
   AND %s > "Окончание КС"
 """
         with self.client.cursor() as cur:
-            cur.execute(q_count_won, (params.Supplier, *params.Interval.get_standart()))
-            won = cur.fetchone()[0]
+            try:
+                cur.execute(q_count_won, (params.Supplier, *params.Interval.get_standart()))
+                won = cur.fetchone()[0]
 
-            cur.execute(q_count_lose, (params.Supplier, *params.Interval.get_standart()))
-            lose = cur.fetchone()[0]
+                cur.execute(q_count_lose, (params.Supplier, *params.Interval.get_standart()))
+                lose = cur.fetchone()[0]
 
-            cur.execute(q_perc_won, (params.Supplier, *params.Interval.get_standart()))
-            won_perc = cur.fetchone()[0]
-            return ParticipationResultResponse(won=won, lose=lose, won_perc=won_perc)
+                cur.execute(q_perc_won, (params.Supplier, *params.Interval.get_standart()))
+                won_perc = cur.fetchone()[0]
+                self.client.commit()
+                return ParticipationResultResponse(won=won, lose=lose, won_perc=won_perc)
+            except:
+                self.client.rollback()
 
 
     def get_participation_agg(self, params: ParticipationResultAggRequest) -> ParticipationResultResponse:
@@ -267,20 +291,24 @@ ORDER BY
 """)
         
         with self.client.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute(q_won, (params.Supplier, *params.Interval.get_standart()))
-            won = cur.fetchall()
+            try:
+                cur.execute(q_won, (params.Supplier, *params.Interval.get_standart()))
+                won = cur.fetchall()
 
-            cur.execute(q_lose, (params.Supplier, *params.Interval.get_standart()))
-            lose = cur.fetchall()
+                cur.execute(q_lose, (params.Supplier, *params.Interval.get_standart()))
+                lose = cur.fetchall()
 
-            cur.execute(q_won_perc, (params.Supplier, *params.Interval.get_standart()))
-            won_perc = cur.fetchall()
+                cur.execute(q_won_perc, (params.Supplier, *params.Interval.get_standart()))
+                won_perc = cur.fetchall()
 
-            return ParticipationResultAggResponse(
-                won=[dict(row) for row in won],
-                lose=[dict(row) for row in lose],
-                won_perc=[dict(row) for row in won_perc]
-            )
+                self.client.commit()
+                return ParticipationResultAggResponse(
+                    won=[dict(row) for row in won],
+                    lose=[dict(row) for row in lose],
+                    won_perc=[dict(row) for row in won_perc]
+                )
+            except:
+                self.client.rollback()
 
 
     def get_category_high_demand(self, params: CategoryHighDemandRequest) -> CategoryHighDemandResponse:
@@ -305,14 +333,18 @@ order by "Коэффицент спроса" DESC
 limit 5;
 """
         with self.client.cursor() as cur:
-            cur.execute(q, (*params.Interval.get_standart(),))
-            result = cur.fetchall()
-            return CategoryHighDemandResponse(
-                top=[CategoryDemand(
-                    category_name=row[0],
-                    demand_factor=row[1]
-                ) for row in result]
-            )
+            try:
+                cur.execute(q, (*params.Interval.get_standart(),))
+                result = cur.fetchall()
+                self.client.commit()
+                return CategoryHighDemandResponse(
+                    top=[CategoryDemand(
+                        category_name=row[0],
+                        demand_factor=row[1]
+                    ) for row in result]
+                )
+            except:
+                self.client.rollback()
 
 
     def get_category_highest(self, params: CategoryRequest) -> CategoryResponse:
@@ -364,32 +396,36 @@ limit 5;
 """
 
         with self.client.cursor() as cur:
-            cur.execute(q_high_demand, (*params.Interval.get_standart(),))
-            high_demand = cur.fetchall()
+            try:
+                cur.execute(q_high_demand, (*params.Interval.get_standart(),))
+                high_demand = cur.fetchall()
 
-            cur.execute(q_high_wins, (params.supplier, *params.Interval.get_standart(),))
-            high_wins = cur.fetchall()
+                cur.execute(q_high_wins, (params.supplier, *params.Interval.get_standart(),))
+                high_wins = cur.fetchall()
 
-            cur.execute(q_high_concurrency, (params.supplier, *params.Interval.get_standart(),))
-            high_concurrency = cur.fetchall()
+                cur.execute(q_high_concurrency, (params.supplier, *params.Interval.get_standart(),))
+                high_concurrency = cur.fetchall()
 
-            return CategoryResponse(
-                highest_demand=[Category(
-                    category_name=row[0],
-                    value_type="Коэффициент спроса",
-                    value=row[1]
-                ) for row in high_demand],
-                highest_wins=[Category(
-                    category_name=row[0],
-                    value_type="Количество выигранных сессий",
-                    value=row[1]
-                ) for row in high_wins],
-                highest_concurrency=[Category(
-                    category_name=row[0],
-                    value_type="Количество соперников",
-                    value=row[1]
-                ) for row in high_concurrency]
-            )
+                self.client.commit()
+                return CategoryResponse(
+                    highest_demand=[Category(
+                        category_name=row[0],
+                        value_type="Коэффициент спроса",
+                        value=row[1]
+                    ) for row in high_demand],
+                    highest_wins=[Category(
+                        category_name=row[0],
+                        value_type="Количество выигранных сессий",
+                        value=row[1]
+                    ) for row in high_wins],
+                    highest_concurrency=[Category(
+                        category_name=row[0],
+                        value_type="Количество соперников",
+                        value=row[1]
+                    ) for row in high_concurrency]
+                )
+            except:
+                self.client.rollback()
         
     
     def create_dashboard_schema(self, name: str, content: bytes) -> int:
@@ -428,12 +464,16 @@ GROUP BY temp_table.cnt_unique_contracts;
 """
 
         with self.client.cursor() as cur:
-            cur.execute(q_v_stat, (params.Supplier, *params.Interval.get_standart()))
-            victory_stat_base = cur.fetchall()
+            try:
+                cur.execute(q_v_stat, (params.Supplier, *params.Interval.get_standart()))
+                victory_stat_base = cur.fetchall()
 
-            return ParticipationResultAggResponse(
-                victory_stat_base=[dict(row) for row in victory_stat_base],
-            )
+                self.client.commit()
+                return ParticipationResultAggResponse(
+                    victory_stat_base=[dict(row) for row in victory_stat_base],
+                )
+            except:
+                self.client.rollback()
 
 
     def get_competitors(self, params: CompetitorsInCSRequest) -> CompetitorsInCSResponse:
@@ -455,6 +495,10 @@ FROM (
 """
 
         with self.client.cursor() as cur:
-            cur.execute(q_comp_stat, (params.Supplier, *params.Interval.get_standart()))
-            cnt_competitors = cur.fetchall()[0]
-            return ParticipationResultResponse(cnt_competitors=cnt_competitors)
+            try:
+                cur.execute(q_comp_stat, (params.Supplier, *params.Interval.get_standart()))
+                cnt_competitors = cur.fetchall()[0]
+                self.client.commit()
+                return ParticipationResultResponse(cnt_competitors=cnt_competitors)
+            except:
+                self.client.rollback()
