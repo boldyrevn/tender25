@@ -53,8 +53,18 @@ def category_high_demand(params: CategoryHighDemandRequest, db: Annotated[DataRe
 def category(params: CategoryRequest, db: Annotated[DataRepository, Depends(get_pg)]):
     return db.get_category_highest(params)
 
+<<<<<<< HEAD
 @app.post('/dashboard')
 def dashboard(params: DashboardSchema, db: Annotated[DataRepository, Depends(get_pg)]):
     id = db.create_dashboard_schema(params.name, params.model_dump_json())
     print(id)
+=======
+@app.post('/victory-stat', response_model=VictoryStatResponse)
+def victory_stat(params: VictoryStatRequest, db: Annotated[DataRepository, Depends(get_pg)]):
+    return db.get_victory_stat(params)
+
+@app.post('/competitors', response_model=CompetitorsInCSResponse)
+def competitors(params: CompetitorsInCSRequest, db: Annotated[DataRepository, Depends(get_pg)]):
+    return db.get_competitors(params)
+>>>>>>> feature/add_query4dashNsendes
 
