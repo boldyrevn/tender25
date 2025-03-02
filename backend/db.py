@@ -66,7 +66,7 @@ class DataRepository:
         query = """
           SELECT 
             t."Id КС",
-            sum(t."Конечная цена КС (победителя в КС)") as "Оборот по сессиям"
+            max(t."Конечная цена КС (победителя в КС)") as "Оборот по сессиям"
           FROM tender_wide_table_v1 as t
           WHERE 1=1
             AND t."ИНН победителя КС" LIKE %s
@@ -90,10 +90,18 @@ class DataRepository:
     def get_amount_agg(self, params: AmountResultAggRequest) -> AmountResultAggResponse:
         query = """
         SELECT
-            SUM(t."Конечная цена КС (победителя в КС)") as "Оборот за период"
-        FROM tender_wide_table_v1 as t
+            SUM(t2."Конечная цена КС (победителя в КС)") as "Оборот за период"
+        FROM 
+          (select 
+            t."ИНН победителя КС",
+            t."Окончание КС",
+            max(t."Конечная цена КС (победителя в КС)") as "Конечная цена КС (победителя в КС)"
+          from tender_wide_table_v1 as t
+          GROUP BY
+            "Id КС", "ИНН победителя КС", "Окончание КС"
+          ) as t2
             WHERE 1=1
-            AND t."ИНН победителя КС" LIKE %s
+            AND t2."ИНН победителя КС" LIKE %s
             AND %s < "Окончание КС"
             AND %s > "Окончание КС"
         GROUP BY
