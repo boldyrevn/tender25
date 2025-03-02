@@ -14,6 +14,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as BaseIndexImport } from './routes/_base/index'
+import { Route as BaseNewImport } from './routes/_base/new'
 
 // Create Virtual Routes
 
@@ -32,6 +33,12 @@ const BaseIndexRoute = BaseIndexImport.update({
   getParentRoute: () => BaseLazyRoute,
 } as any)
 
+const BaseNewRoute = BaseNewImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => BaseLazyRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -42,6 +49,13 @@ declare module '@tanstack/react-router' {
       fullPath: ''
       preLoaderRoute: typeof BaseLazyImport
       parentRoute: typeof rootRoute
+    }
+    '/_base/new': {
+      id: '/_base/new'
+      path: '/new'
+      fullPath: '/new'
+      preLoaderRoute: typeof BaseNewImport
+      parentRoute: typeof BaseLazyImport
     }
     '/_base/': {
       id: '/_base/'
@@ -56,10 +70,12 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface BaseLazyRouteChildren {
+  BaseNewRoute: typeof BaseNewRoute
   BaseIndexRoute: typeof BaseIndexRoute
 }
 
 const BaseLazyRouteChildren: BaseLazyRouteChildren = {
+  BaseNewRoute: BaseNewRoute,
   BaseIndexRoute: BaseIndexRoute,
 }
 
@@ -69,25 +85,28 @@ const BaseLazyRouteWithChildren = BaseLazyRoute._addFileChildren(
 
 export interface FileRoutesByFullPath {
   '': typeof BaseLazyRouteWithChildren
+  '/new': typeof BaseNewRoute
   '/': typeof BaseIndexRoute
 }
 
 export interface FileRoutesByTo {
+  '/new': typeof BaseNewRoute
   '/': typeof BaseIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_base': typeof BaseLazyRouteWithChildren
+  '/_base/new': typeof BaseNewRoute
   '/_base/': typeof BaseIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '' | '/'
+  fullPaths: '' | '/new' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/_base' | '/_base/'
+  to: '/new' | '/'
+  id: '__root__' | '/_base' | '/_base/new' | '/_base/'
   fileRoutesById: FileRoutesById
 }
 
@@ -115,8 +134,13 @@ export const routeTree = rootRoute
     "/_base": {
       "filePath": "_base.lazy.tsx",
       "children": [
+        "/_base/new",
         "/_base/"
       ]
+    },
+    "/_base/new": {
+      "filePath": "_base/new.tsx",
+      "parent": "/_base"
     },
     "/_base/": {
       "filePath": "_base/index.tsx",

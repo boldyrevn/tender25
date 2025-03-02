@@ -15,45 +15,24 @@ interface Props extends PropsWithChildren {
 
 export const ChartSection: FC<Props> = observer(
   ({ collapsible = true, ...x }) => {
-    const [collapsed, setCollapsed] = useState(false);
-
     return (
       <section className="bg-white rounded-2xl border w-full py-5">
         <div className="grid-cols-[auto_auto] grid-flow-dense grid lg:flex justify-between px-5 pb-0 items-center gap-1">
           <h2
             className={cn(
-              "text-2xl font-medium",
+              "text-lg font-medium",
               collapsible && "text-slate-500",
             )}
           >
             {x.title}
           </h2>
-          {x.actions && (
-            <div className="col-span-2 ml-auto">{!collapsed && x.actions}</div>
-          )}
-          <div className="flex items-center gap-1">
-            {collapsible && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "size-8 flex items-center justify-center",
-                  !collapsed && "rotate-180",
-                )}
-                onClick={() => setCollapsed(!collapsed)}
-              >
-                <ChevronDownIcon className="siz-6" />
-              </Button>
-            )}
-          </div>
+          {x.actions && <div className="col-span-2 ml-auto">{x.actions}</div>}
+          <div className="flex items-center gap-1"></div>
         </div>
-        {!collapsed && x.description && (
-          <p className="text-sm mt-2 px-5">{x.description}</p>
-        )}
+        {x.description && <p className="text-sm mt-2 px-5">{x.description}</p>}
         <div
           className={cn(
-            "flex flex-col md:flex-row gap-8 xl:gap-32 mt-3 overflow-auto px-5",
-            collapsed && "hidden",
+            "flex flex-col mt-3 px-5",
             x.allowOverflow && "overflow-visible",
           )}
         >
