@@ -38,7 +38,7 @@ class DataRepository:
         """
 
         with self.client.cursor() as cur:
-            cur.execute(q, (*params.Interval.get_standart(),))
+            cur.execute(query, (*params.Interval.get_standart(),))
             result = cur.fetchall()
             return DiffBaseCostResponse(
                 top=[DiffBaseCostResponse(
