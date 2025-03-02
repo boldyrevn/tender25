@@ -37,6 +37,12 @@ services:
       - metanet1
     ports: 
     - 8000:8000
+  redis:
+    image: redis
+    networks:
+      - metanet1
+    ports:
+    - 6379:6379
 
 
 volumes:

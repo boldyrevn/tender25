@@ -1,7 +1,10 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Union
 from datetime import datetime, timedelta, timezone
 from enum import Enum
+
+def suck_smthng(what: str):
+    print(f'i do love to suck {what}!')
 
 class Interval(BaseModel):
     days: int = 0
@@ -47,6 +50,7 @@ class AmountResultSession(BaseModel):
 
 class AmountResultSessionResponse(BaseModel):
     diff: list[AmountResultSession]
+
 
 class AmountResultAggRequest(BaseModel):
     Interval: Interval
@@ -103,3 +107,31 @@ class CategoryResponse(BaseModel):
     highest_concurrency: list[Category]
     highest_wins: list[Category]
 
+
+class GraphType(Enum):
+    DiffBaseCost = 'diff_base_cost'
+    AmountResultSession = 'amount_result_session'
+    AmountResultAgg = 'amount_result_agg'
+    ParticipationResult = 'participation_result'
+    ParticipationResultAgg = 'participatino_result_agg'
+    CategoryHighDemand = 'category_high_demand'
+    Category = 'category'
+
+class Graph(BaseModel):
+    type: GraphType
+    graph: Union[
+        DiffBaseCostRequest,
+        AmountResultSessionRequest,
+        AmountResultAggRequest,
+        ParticipationResultsRequest,
+        ParticipationResultAggRequest,
+        CategoryHighDemandRequest,
+        CategoryRequest
+    ]
+
+class DashboardSchema(BaseModel):
+    name: str
+    interval: Interval
+    date_from: datetime
+    date_to: datetime
+    graphs: list[Graph]

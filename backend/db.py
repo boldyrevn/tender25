@@ -1,8 +1,21 @@
 import psycopg2
 import psycopg2.extras
 import psycopg2.pool
-
 from model import *
+
+cfg = {
+    "host":"185.170.153.129",
+    "port":"5432",
+    "user":"tender",
+    "password":"tenderpass",
+    "db":"tenderdb"
+}
+
+def make_req(cfg, method, params):
+    pgclient = DataRepository(**cfg)
+    print('RESULT:', method(pgclient, params))
+
+
 
 class DataRepository:
     def __init__(self, host: str, port: str, user: str, password: str, db: str):
@@ -369,3 +382,19 @@ limit 5;
                     value=row[1]
                 ) for row in high_concurrency]
             )
+        
+    
+    def create_dashboard_schema(self, name: str, content: bytes) -> int:
+        q = """
+    INSERT INTO dash_schemas(name, content) VALUES
+    (%s, %s)
+    RETURNING ID;
+""" 
+        with self.client.cursor() as cur:
+            try:
+                cur.execute(q, (name, content))
+                id = cur.fetchone()[0]
+                self.client.commit()
+                return id
+            except:
+                self.client.rollback()

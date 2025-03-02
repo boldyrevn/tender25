@@ -1,9 +1,10 @@
-from datetime import timedelta, datetime, timezone
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Annotated
 from db import DataRepository
 from model import *
+
+import json
 
 app = FastAPI()
 
@@ -51,3 +52,9 @@ def category_high_demand(params: CategoryHighDemandRequest, db: Annotated[DataRe
 @app.post('/category', response_model=CategoryResponse)
 def category(params: CategoryRequest, db: Annotated[DataRepository, Depends(get_pg)]):
     return db.get_category_highest(params)
+
+@app.post('/dashboard')
+def dashboard(params: DashboardSchema, db: Annotated[DataRepository, Depends(get_pg)]):
+    id = db.create_dashboard_schema(params.name, params.model_dump_json())
+    print(id)
+
