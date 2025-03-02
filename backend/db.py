@@ -499,6 +499,6 @@ FROM (
                 cur.execute(q_comp_stat, (params.Supplier, *params.Interval.get_standart()))
                 cnt_competitors = cur.fetchall()[0]
                 self.client.commit()
-                return ParticipationResultResponse(cnt_competitors=cnt_competitors)
+                return CompetitorsInCSResponse(cnt_competitors=cnt_competitors)
             except:
                 self.client.rollback()
