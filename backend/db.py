@@ -43,8 +43,8 @@ class DataRepository:
             return DiffBaseCostResponse(
                 top=[DiffBaseCost(
                     id_ks=row[0],
-                    ds_mean=row[1],
-                    ks_mean=row[2]
+                    ks_mean=row[1],
+                    ds_mean=row[2]
                 ) for row in result]
             )
 
