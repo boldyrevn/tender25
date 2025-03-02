@@ -269,3 +269,31 @@ limit 5;
                     value=row[1]
                 ) for row in high_concurrency]
             )
+
+    def get_victory_stat(self, params: VictoryStatRequest) -> VictoryStatResponse:
+        q_v_stat = """
+SELECT 
+    temp_table.cnt_unique_contracts AS число_выполненных_оферт, 
+    COUNT(*) AS "число_заказчиков"
+FROM (
+    SELECT 
+        twt."ИНН заказчика", 
+        twt."ИНН победителя КС", 
+        COUNT(DISTINCT twt."ИНН победителя КС" || twt."Id КС") AS cnt_unique_contracts
+    FROM tender_wide_table_v1 AS twt 
+    WHERE 1=1
+    AND twt."ИНН заказчика" = %s
+    AND %s < "Окончание КС"
+  	AND %s > "Окончание КС"
+    GROUP BY twt."ИНН заказчика", twt."ИНН победителя КС"
+) AS temp_table
+GROUP BY temp_table.cnt_unique_contracts;
+"""
+
+        with self.client.cursor() as cur:
+            cur.execute(q_v_stat, (params.Supplier, *params.Interval.get_standart()))
+            victory_stat_base = cur.fetchall()
+
+            return ParticipationResultAggResponse(
+                victory_stat_base=[dict(row) for row in victory_stat_base],
+            )

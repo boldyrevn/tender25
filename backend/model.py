@@ -70,3 +70,14 @@ class CategoryResponse(BaseModel):
     highest_concurrency: list[Category]
     highest_wins: list[Category]
 
+class VictoryStatRequest(BaseModel):
+    Interval: Interval
+    Supplier: str
+
+class VictoryStat(BaseModel):
+    offer_cnt: int
+    supplier_cnt: int
+class VictoryStatResponse(BaseModel):
+    victory_stat_base: list[VictoryStat]
+
+

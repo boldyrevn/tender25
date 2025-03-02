@@ -80,3 +80,4 @@ webencodings==0.5.1
 websockets==15.0
 yarg==0.1.9
 zipp==3.21.0
+pandas

@@ -39,3 +39,7 @@ def category_high_demand(params: CategoryHighDemandRequest, db: Annotated[DataRe
 @app.post('/category', response_model=CategoryResponse)
 def category(params: CategoryRequest, db: Annotated[DataRepository, Depends(get_pg)]):
     return db.get_category_highest(params)
+
+@app.post('/victory-stat', response_model=VictoryStatResponse)
+def category(params: VictoryStatRequest, db: Annotated[DataRepository, Depends(get_pg)]):
+    return db.get_victory_stat(params)
