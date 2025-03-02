@@ -24,6 +24,25 @@ class AggByType(Enum):
     Year = 'Year'
 
 
+class DiffBaseCostRequest(BaseModel):
+    Interval: Interval
+    Supplier: Optional[str] = None
+
+class DiffBaseCostResponse(BaseModel):
+    id_ks: str
+    ds_mean: float
+    ks_mean: float
+
+
+class AmountResultAggRequest(BaseModel):
+    Interval: Interval
+    Supplier: Optional[str] = None
+    AggBy: AggByType
+
+class AmountResultAggResponse(BaseModel):
+    amt: list[dict]
+
+
 class ParticipationResultsRequest(BaseModel):
     Interval: Interval
     Supplier: Optional[str] = None

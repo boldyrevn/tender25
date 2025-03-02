@@ -14,6 +14,93 @@ class DataRepository:
             database=db
         )
 
+    def get_diff_the_base_cost(self, params: DiffBaseCostRequest) -> DiffBaseCostResponse:
+        query = """
+        SELECT 
+            "Id КС",
+            "Процент проседания цены",
+            AVG("Процент проседания цены") OVER (PARTITION BY "ИНН победителя КС") AS "Средний процент проседания цены по победителю"
+        FROM 
+            (
+            SELECT
+                "Id КС",
+                "ИНН победителя КС",
+                AVG((t."Конечная цена КС (победителя в КС)" - t."Начальная цена КС") / t."Начальная цена КС") * (-100) AS "Процент проседания цены"
+            FROM
+                tender_wide_table_v1 AS t
+            WHERE 1 = 1
+            AND t."ИНН победителя КС" LIKE %s
+            AND %s < "Окончание КС"
+            AND %s > "Окончание КС"
+            GROUP BY
+                "Id КС", "ИНН победителя КС"
+        )
+        """
+
+        with self.client.cursor() as cur:
+            cur.execute(q, (*params.Interval.get_standart(),))
+            result = cur.fetchall()
+            return DiffBaseCostResponse(
+                top=[DiffBaseCostResponse(
+                    id_ks=row[0],
+                    ds_mean=row[1],
+                    ks_mean=row[2]
+                ) for row in result]
+            )
+
+
+    def get_amount_agg(self, params: AmountResultAggRequest) -> AmountResultAggResponse:
+        query = """
+        SELECT
+            SUM(t."Конечная цена КС (победителя в КС)") as "Оборот за период"
+        FROM tender_wide_table_v1 as t
+            WHERE 1=1
+            AND t."ИНН победителя КС" LIKE %s
+            AND %s < "Окончание КС"
+            AND %s > "Окончание КС"
+        GROUP BY
+            {group_by}
+        ORDER BY
+            {order_by}
+        """
+
+        groupby_map = {
+            AggByType.Month: """
+              EXTRACT(YEAR FROM "Окончание КС"),
+              EXTRACT(MONTH FROM "Окончание КС")
+            """,
+            AggByType.Quarter: """
+              EXTRACT(YEAR FROM "Окончание КС"),
+              EXTRACT(QUARTER FROM "Окончание КС")
+            """,
+            AggByType.Year: """
+              EXTRACT(YEAR FROM "Окончание КС")
+            """
+        }
+
+        orderby_map = {
+            AggByType.Month: """
+              "Год", "Месяц";
+            """,
+            AggByType.Quarter: """
+              "Год", "Квартал";
+            """,
+            AggByType.Year: """
+              "Год";
+            """
+        }
+
+        query = query. \
+            replace("{group_by}", groupby_map[params.AggBy]). \
+            replace("{order_by}", orderby_map[params.AggBy])
+
+        with self.client.cursor() as cur:
+            cur.execute(query, (params.Supplier, *params.Interval.get_standart()))
+            result = cur.fetchone()            
+            amt = result[0]
+            return AmountResultAggResponse(amt=amt)
+
+
     def get_participation(self, params: ParticipationResultsRequest) -> ParticipationResultResponse:
         q_count_won = """
 SELECT
