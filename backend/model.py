@@ -117,6 +117,7 @@ class GraphType(Enum):
     CategoryHighDemand = 'category_high_demand'
     Category = 'category'
 
+
 class Graph(BaseModel):
     type: GraphType
     graph: Union[
