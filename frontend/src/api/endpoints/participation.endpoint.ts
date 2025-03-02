@@ -58,4 +58,7 @@ export namespace ParticipationEndpoint {
 
   export const lowerDiff = (request: ParticipationRequest): Promise<any> =>
     api.post("/diff_base_cost", request);
+
+  export const create = (request: any): Promise<any> =>
+    api.post("/dashboard", request);
 }

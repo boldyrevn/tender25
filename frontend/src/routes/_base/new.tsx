@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Interval } from "@/types/common";
 import { debounce } from "@/utils/debounce";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { FileIcon, IdCardIcon, TrashIcon } from "lucide-react";
 import { makeAutoObservable, observable } from "mobx";
 import { observer } from "mobx-react-lite";
@@ -109,7 +109,6 @@ const Store = new (class {
   name = "";
   dateFrom = new Date(new Date().setMonth(new Date().getMonth() - 3));
   dateTo = new Date();
-  intervalKey: "Year" | "Month" = "Year";
   charts: Chart[] = [];
   loading = false;
 
@@ -196,6 +195,24 @@ const Store = new (class {
     }
   }
 
+  getType(chart: Chart) {
+    if (chart.metricType === MetricType.PARTICIPATION_RESULTS && chart.aggBy) {
+      return ["participatino_result_agg"];
+    } else if (
+      chart.metricType === MetricType.PARTICIPATION_RESULTS &&
+      !chart.aggBy
+    ) {
+      return ["participatino_result"];
+    } else if (chart.metricType === MetricType.CATEGORY && !chart.aggBy) {
+      return ["category"];
+    } else if (chart.metricType === MetricType.CATEGORY && chart.aggBy) {
+      return ["category_high_demand"];
+    } else if (chart.metricType === MetricType.PRICE_DIFFERENCE) {
+      return ["amount_result_session", "participatino_result_agg"];
+    }
+    return ["diff_base_cost"];
+  }
+
   loadDataDebounced = debounce(() => {
     this.charts.forEach((c) => this.loadData(c));
   }, 1500);
@@ -211,11 +228,43 @@ const Store = new (class {
   }, 500);
 
   async createDashboard() {
+    if (!this.name.trim()) {
+      toast.error("Укажите название");
+      return;
+    }
+    if (this.charts.length === 0) {
+      toast.error("Добавьте хотя бы одну метрику");
+      return;
+    }
     this.loading = true;
 
+    const data: any = {
+      name: this.name,
+      interval: this.Interval,
+      date_from: this.dateFrom.toISOString(),
+      date_to: this.dateTo.toISOString(),
+      graphs: [],
+    };
+
+    this.charts.forEach((c) => {
+      const types = this.getType(c);
+      types.forEach((type) => {
+        data.graphs.push({
+          type,
+          graph: {
+            Interval: data.interval,
+            Supplier: c.Supplier,
+            AggBy: c.aggBy ?? undefined,
+          },
+        });
+      });
+    });
+
+    await ParticipationEndpoint.create(data);
     toast.success("Дашборд создан!");
 
     this.loading = false;
+    return true;
   }
 })();
 
@@ -285,8 +334,8 @@ export const ListItem = observer(
 );
 
 const RouteComponent = observer(() => {
+  const navigate = useNavigate();
   useEffect(() => {
-    Store.intervalKey = "Year";
     // Store.Interval = {
     //   months: 15,
     // };
@@ -309,6 +358,8 @@ const RouteComponent = observer(() => {
         placeholder="Название дашборда"
         leftIcon={<FileIcon />}
         className="w-[300px]"
+        value={Store.name}
+        onChange={(v) => (Store.name = v.target.value)}
       />
       <RecurrenceIntervalSelector
         recurrenceType={Store.recurrenceType}
@@ -337,7 +388,19 @@ const RouteComponent = observer(() => {
             }}
             disabled={Store.loading}
           />
-          <Button variant="outline" disabled={Store.loading}>
+          <Button
+            variant="outline"
+            disabled={Store.loading}
+            onClick={() =>
+              Store.createDashboard().then((v) => {
+                if (v) {
+                  navigate({
+                    to: "/",
+                  });
+                }
+              })
+            }
+          >
             Создать дашборд
           </Button>
         </div>

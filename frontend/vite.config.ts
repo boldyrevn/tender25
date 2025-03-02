@@ -23,7 +23,7 @@ export default defineConfig({
       registerType: "autoUpdate",
       manifest: {
         theme_color: "#015AAE",
-        name: "Дашборд рекуртера",
+        name: "Дашборд",
       },
     }),
   ],
