@@ -8,7 +8,7 @@ import {
   PlusIcon,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
-import { Button } from "../ui/button";
+import { Button, buttonVariants } from "../ui/button";
 import { FC, useEffect, useState } from "react";
 import { ScrollArea } from "../ui/scroll-area";
 import { Drawer, DrawerContent, DrawerTrigger } from "../ui/drawer";
@@ -34,11 +34,6 @@ const items: {
     active: (pathname) =>
       pathname.includes("/vacancy") && !pathname.includes("/vacancy/new"),
   },
-  {
-    to: "/tasks",
-    label: "Мои задачи",
-    icon: CheckSquareIcon,
-  },
 ];
 
 const SidebarContent = observer(() => {
@@ -46,7 +41,7 @@ const SidebarContent = observer(() => {
   const navigate = useNavigate();
 
   return (
-    <ScrollArea className="py-4 h-full">
+    <ScrollArea className="py-4 h-full pt-8">
       <ul className="flex flex-col gap-1 px-2">
         {items.map((item, i) => (
           <li key={i}>
@@ -67,14 +62,14 @@ const SidebarContent = observer(() => {
         ))}
       </ul>
       <div className="mx-6 my-5">
-        <Button
-          onClick={() => (MainStore.page = "new")}
-          className={"w-full gap-1"}
-          disabled={pathname.includes("/vacancy/new")}
+        <Link
+          to="/new"
+          className={cn(buttonVariants(), "w-full gap-1")}
+          disabled={pathname.includes("/new")}
         >
           <PlusIcon className="size-5" />
           Создать дашборд
-        </Button>
+        </Link>
       </div>
     </ScrollArea>
   );

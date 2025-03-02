@@ -3,7 +3,7 @@ import { z } from "zod";
 import { buildQueryString, Query } from "./buildQueryString";
 import { authToken } from "./authToken";
 
-const baseUrl = import.meta.env.VITE_API_URL || "https://api.t1.larek.tech";
+const baseUrl = "http://185.170.153.129:8000";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Schema = z.ZodType<any, any, any>;
