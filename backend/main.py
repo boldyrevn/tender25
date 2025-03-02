@@ -73,3 +73,6 @@ def victory_stat(params: VictoryStatRequest, db: Annotated[DataRepository, Depen
 def competitors(params: CompetitorsInCSRequest, db: Annotated[DataRepository, Depends(get_pg)]):
     return db.get_competitors(params)
 
+# @app.post('/popular_category', response_model=PopularCategoryResponse)
+# def popular_category(params: PopularCategoryRequest, db: Annotated[DataRepository, Depends(get_pg)]):
+#     return db.get_popular_category(params)

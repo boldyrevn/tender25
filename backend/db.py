@@ -470,7 +470,11 @@ GROUP BY temp_table.cnt_unique_contracts;
 
                 self.client.commit()
                 return VictoryStatResponse(
-                    victory_stat_base=[dict(row) for row in victory_stat_base],
+                    victory_stat_base=[VictoryStat(
+                        offer_cnt=row[0],
+                        supplier_cnt=row[1]
+                    )
+                    for row in victory_stat_base],
                 )
             except:
                 self.client.rollback()

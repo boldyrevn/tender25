@@ -152,3 +152,10 @@ class CompetitorsInCSRequest(BaseModel):
 class CompetitorsInCSResponse(BaseModel):
     cnt_competitors: int
 
+class PopularCategoryRequest(BaseModel):
+    Interval: Interval
+    Supplier: str
+
+class PopularCategoryResponse(BaseModel):
+    cnt_competitors: int
+
