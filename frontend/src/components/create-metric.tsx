@@ -25,6 +25,8 @@ export enum MetricType {
   CATEGORY = "Информация по категориям участия",
   PRICE_DIFFERENCE = "Сумма контрактов",
   LOWER_DIFFERENCE = "Проседание от заданной цены по КС у поставщика",
+  COMPETITORS = "Среднее количество конкурентов в сессии",
+  VICTORY = "Выигранные КС на заказчика",
 }
 
 interface Props {
@@ -97,10 +99,18 @@ export const CreateMetric = ({ onSelect, disabled }: Props) => {
               <SelectItem value={MetricType.LOWER_DIFFERENCE}>
                 {MetricType.LOWER_DIFFERENCE}
               </SelectItem>
+              <SelectItem value={MetricType.COMPETITORS}>
+                {MetricType.COMPETITORS}
+              </SelectItem>
+              <SelectItem value={MetricType.VICTORY}>
+                {MetricType.VICTORY}
+              </SelectItem>
             </SelectContent>
           </Select>
           {metric !== MetricType.PRICE_DIFFERENCE &&
-            metric !== MetricType.LOWER_DIFFERENCE && (
+            metric !== MetricType.LOWER_DIFFERENCE &&
+            metric !== MetricType.COMPETITORS &&
+            metric !== MetricType.VICTORY && (
               <label
                 className={cn(
                   "flex items-center gap-2 w-fit",

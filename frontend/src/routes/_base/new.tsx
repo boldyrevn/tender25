@@ -25,10 +25,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import VictoryStatsVisualization, {
+  VictoryStatProps,
+} from "@/components/victory";
 import { Interval } from "@/types/common";
 import { debounce } from "@/utils/debounce";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { FileIcon, IdCardIcon, TrashIcon } from "lucide-react";
+import { AtSign, FileIcon, IdCardIcon, TrashIcon } from "lucide-react";
 import { makeAutoObservable, observable } from "mobx";
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState } from "react";
@@ -52,6 +55,7 @@ export interface DashboardCreateRequest {
 export interface DashboardResponse {
   id: string;
   name: string;
+  email: string;
   Interval: Interval;
   date_from: string; //python datetime
   date_to: string; //python datetime
@@ -101,12 +105,35 @@ type Chart =
       aggBy: "Year" | "Month" | null;
       Supplier?: string;
       data?: { diff: SessionsResponse["data"] };
+    }
+  | {
+      metricType: MetricType.COMPETITORS;
+      aggBy: "Year" | "Month" | null;
+      Supplier?: string;
+      data?: {
+        cnt_competitors: number;
+      };
+    }
+  | {
+      metricType: MetricType.VICTORY;
+      aggBy: "Year" | "Month" | null;
+      Supplier?: string;
+      data?: VictoryStatProps;
     };
+
+const validateEmail = (email: string) => {
+  return String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+    );
+};
 
 const Store = new (class {
   recurrenceType: RecurrenceType = "monthly";
   recurrenceInterval = 15;
   name = "";
+  email = "";
   dateFrom = new Date(new Date().setMonth(new Date().getMonth() - 3));
   dateTo = new Date();
   charts: Chart[] = [];
@@ -139,7 +166,7 @@ const Store = new (class {
     const chart: Chart = observable({
       metricType: item,
       aggBy: aggBy ? "Year" : null,
-      Supplier: "7716651327", // 7716651327
+      Supplier: "471103028848", // 471103028848
     });
     this.charts.push(chart);
     this.loadData(chart);
@@ -192,6 +219,20 @@ const Store = new (class {
       });
 
       chart.data = data;
+    } else if (chart.metricType === MetricType.COMPETITORS) {
+      const data = await ParticipationEndpoint.competitors({
+        Interval: this.Interval,
+        Supplier: chart.Supplier,
+      });
+
+      chart.data = data;
+    } else if (chart.metricType === MetricType.VICTORY) {
+      const data = await ParticipationEndpoint.victory({
+        Interval: this.Interval,
+        Supplier: chart.Supplier,
+      });
+
+      chart.data = data;
     }
   }
 
@@ -236,10 +277,16 @@ const Store = new (class {
       toast.error("Добавьте хотя бы одну метрику");
       return;
     }
+    if (!validateEmail) {
+      toast.error("Неправильная почта");
+      return;
+    }
+
     this.loading = true;
 
     const data: any = {
       name: this.name,
+      email: this.email,
       interval: this.Interval,
       date_from: this.dateFrom.toISOString(),
       date_to: this.dateTo.toISOString(),
@@ -295,7 +342,9 @@ export const ListItem = observer(
           />
           {v.aggBy &&
             v.metricType !== MetricType.CATEGORY &&
-            v.metricType !== MetricType.LOWER_DIFFERENCE && (
+            v.metricType !== MetricType.LOWER_DIFFERENCE &&
+            v.metricType !== MetricType.COMPETITORS &&
+            v.metricType !== MetricType.VICTORY && (
               <Select
                 value={v.aggBy}
                 onValueChange={(vv) => Store.changeAggby(vv, v)}
@@ -328,6 +377,14 @@ export const ListItem = observer(
         {v.metricType === MetricType.LOWER_DIFFERENCE && v.data && (
           <SessionsChart data={v.data.diff} />
         )}
+        {v.metricType === MetricType.COMPETITORS && v.data && (
+          <div className="text-6xl font-bold text-blue-600">
+            {v.data.cnt_competitors}
+          </div>
+        )}
+        {v.metricType === MetricType.VICTORY && v.data && (
+          <VictoryStatsVisualization {...v.data} />
+        )}
       </ChartSection>
     );
   },
@@ -354,13 +411,21 @@ const RouteComponent = observer(() => {
         </div>
       }
     >
-      <IconInput
-        placeholder="Название дашборда"
-        leftIcon={<FileIcon />}
-        className="w-[300px]"
-        value={Store.name}
-        onChange={(v) => (Store.name = v.target.value)}
-      />
+      <div className="flex items-center gap-2 w-full max-w-xl *:flex-1">
+        <IconInput
+          placeholder="Название дашборда"
+          leftIcon={<FileIcon />}
+          value={Store.name}
+          onChange={(v) => (Store.name = v.target.value)}
+        />
+        <IconInput
+          placeholder="Почта"
+          leftIcon={<AtSign />}
+          value={Store.email}
+          type="email"
+          onChange={(v) => (Store.email = v.target.value)}
+        />
+      </div>
       <RecurrenceIntervalSelector
         recurrenceType={Store.recurrenceType}
         recurrenceInterval={Store.recurrenceInterval}
