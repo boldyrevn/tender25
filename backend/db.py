@@ -38,10 +38,10 @@ class DataRepository:
         """
 
         with self.client.cursor() as cur:
-            cur.execute(query, (*params.Interval.get_standart(),))
+            cur.execute(query, (params.Supplier, *params.Interval.get_standart()))
             result = cur.fetchall()
             return DiffBaseCostResponse(
-                top=[DiffBaseCost(
+                diff=[DiffBaseCost(
                     id_ks=row[0],
                     ks_mean=row[1],
                     ds_mean=row[2]
@@ -64,12 +64,12 @@ class DataRepository:
         """
 
         with self.client.cursor() as cur:
-            cur.execute(query, (*params.Interval.get_standart(),))
+            cur.execute(query, (params.Supplier, *params.Interval.get_standart()))
             result = cur.fetchall()
             return AmountResultSessionResponse(
-                top=[AmountResultSession(
+                diff=[AmountResultSession(
                     id_ks=row[0],
-                    session_amt=row[1],
+                    amt=row[1],
                 ) for row in result]
             )
 
@@ -103,21 +103,9 @@ class DataRepository:
             """
         }
 
-        orderby_map = {
-            AggByType.Month: """
-              "Год", "Месяц";
-            """,
-            AggByType.Quarter: """
-              "Год", "Квартал";
-            """,
-            AggByType.Year: """
-              "Год";
-            """
-        }
-
         query = query. \
             replace("{group_by}", groupby_map[params.AggBy]). \
-            replace("{order_by}", orderby_map[params.AggBy])
+            replace("{order_by}", groupby_map[params.AggBy])
 
         with self.client.cursor() as cur:
             cur.execute(query, (params.Supplier, *params.Interval.get_standart()))

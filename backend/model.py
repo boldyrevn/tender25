@@ -54,7 +54,7 @@ class AmountResultAggRequest(BaseModel):
     AggBy: AggByType
 
 class AmountResultAggResponse(BaseModel):
-    amt: list[dict]
+    amt: float
 
 
 class ParticipationResultsRequest(BaseModel):

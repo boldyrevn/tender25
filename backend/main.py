@@ -24,15 +24,15 @@ pgclient = DataRepository(
 def get_pg():
     return pgclient
 
-@app.post('/diff_base_cost')
+@app.post('/diff_base_cost', response_model=DiffBaseCostResponse)
 def participation(params: DiffBaseCostRequest, db: Annotated[DataRepository, Depends(get_pg)]):
     return db.get_diff_the_base_cost(params)
 
-@app.post('/amount/aggby')
+@app.post('/amount/aggby', response_model=AmountResultAggResponse)
 def participation(params: AmountResultAggRequest, db: Annotated[DataRepository, Depends(get_pg)]):
     return db.get_amount_agg(params)
 
-@app.post('/amount/sessions')
+@app.post('/amount/sessions', response_model=AmountResultSessionResponse)
 def participation(params: AmountResultSessionRequest, db: Annotated[DataRepository, Depends(get_pg)]):
     return db.get_amount_sessions(params)
 
