@@ -469,7 +469,7 @@ GROUP BY temp_table.cnt_unique_contracts;
                 victory_stat_base = cur.fetchall()
 
                 self.client.commit()
-                return ParticipationResultAggResponse(
+                return VictoryStatResponse(
                     victory_stat_base=[dict(row) for row in victory_stat_base],
                 )
             except:
