@@ -247,3 +247,112 @@ ORDER BY
                 lose=[dict(row) for row in lose],
                 won_perc=[dict(row) for row in won_perc]
             )
+
+
+    def get_category_high_demand(self, params: CategoryHighDemandRequest) -> CategoryHighDemandResponse:
+        q = """
+select 
+	t2."Наименование КПГЗ",
+	count(*)/count(distinct t2."ИНН участников") as "Коэффицент спроса"
+from (
+	select distinct
+		t."Id КС",
+		t."ID СТЕ",
+		t."Код КПГЗ",
+		t."Наименование КПГЗ",
+		t."ИНН участников"
+	from tender_wide_table_v1 as t
+	where 1=1
+	and t."Окончание КС" > %s
+	and t."Окончание КС" < %s
+) as t2
+group by t2."Наименование КПГЗ"
+order by "Коэффицент спроса" DESC
+limit 5;
+"""
+        with self.client.cursor() as cur:
+            cur.execute(q, (*params.Interval.get_standart(),))
+            result = cur.fetchall()
+            return CategoryHighDemandResponse(
+                top=[CategoryDemand(
+                    category_name=row[0],
+                    demand_factor=row[1]
+                ) for row in result]
+            )
+
+
+    def get_category_highest(self, params: CategoryRequest) -> CategoryResponse:
+        q_high_demand = """
+select 
+	t2."Наименование КПГЗ",
+	count(*) as "Коэффицент спроса"
+from (
+	select distinct
+		t."Id КС",
+		t."ID СТЕ",
+		t."Наименование КПГЗ"
+	from tender_wide_table_v1 as t
+	where 1=1
+	and t."Окончание КС" > %s
+	and t."Окончание КС" < %s
+) as t2
+group by t2."Наименование КПГЗ"
+order by "Коэффицент спроса" DESC
+limit 5;
+"""
+
+        q_high_wins = """
+select 
+	t."Наименование КПГЗ",
+	count(distinct t."ИНН победителя КС") as "Количество выигранных сессий"
+from tender_wide_table_v1 as t
+where 1=1
+and t."ИНН участников" like %s
+and t."Окончание КС" > %s
+and t."Окончание КС" < %s
+group by "Наименование КПГЗ"
+order by "Количество выигранных сессий" DESC
+limit 5;
+"""
+
+        q_high_concurrency = """
+select 
+	t."Наименование КПГЗ",
+	count(distinct t."ИНН участников") as "Категории с наибольшим соперничеством"
+from tender_wide_table_v1 as t
+where 1=1
+and t."Id КС" in (select distinct "Id КС" from tender_wide_table_v1 as t where "ИНН участников" like %s)
+and t."Окончание КС" > %s
+and t."Окончание КС" < %s
+group by "Наименование КПГЗ"
+order by "Категории с наибольшим соперничеством" DESC
+limit 5;
+"""
+
+        with self.client.cursor() as cur:
+            cur.execute(q_high_demand, (*params.Interval.get_standart(),))
+            high_demand = cur.fetchall()
+
+            cur.execute(q_high_wins, (params.supplier, *params.Interval.get_standart(),))
+            high_wins = cur.fetchall()
+
+            cur.execute(q_high_concurrency, (params.supplier, *params.Interval.get_standart(),))
+            high_concurrency = cur.fetchall()
+
+            return CategoryResponse(
+                highest_demand=[Category(
+                    category_name=row[0],
+                    value_type="Коэффициент спроса",
+                    value=row[1]
+                ) for row in high_demand],
+                highest_wins=[Category(
+                    category_name=row[0],
+                    value_type="Количество выигранных сессий",
+                    value=row[1]
+                ) for row in high_wins],
+                highest_concurrency=[Category(
+                    category_name=row[0],
+                    value_type="Количество соперников",
+                    value=row[1]
+                ) for row in high_concurrency]
+            )
