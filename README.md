@@ -48,7 +48,7 @@ TODO для разработки
 
 ## Демонстрация работы проекта
 
-TODO
+Презентация и показ ыункционала: https://drive.google.com/file/d/1wtieDBjIwqHPQC8jtuPMRp33j1B4APFf/view?usp=sharing 
 
 ## Заключение
 
