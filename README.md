@@ -20,7 +20,13 @@ TODO от разработки
 
 ## Технологии и инструменты
 
-TODO для разработки
+Infra: docker
+
+Frontend: React, TailWind, MobX, TypeScript
+
+Backend: FastAPI, PsycoPG2, Postgres, Python
+
+Analytics: SQL, Pandas, PySpark
 
 ## Команда проекта
 
